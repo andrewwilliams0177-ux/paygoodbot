@@ -2,7 +2,7 @@ import os
 
 # --- Core ---
 BOT_NAME = "PayGoodBot"
-BOT_TOKEN = os.getenv("BOT_TOKEN", "PUT_YOUR_TELEGRAM_BOT_TOKEN_HERE")
+BOT_TOKEN = os.getenv("BOT_TOKEN", "PUT_YOUR_TELEGRAM_BOT_TOKEN_HERE") 
 
 # --- Card issuing provider ---
 # Which backend to use for issuing virtual cards.
