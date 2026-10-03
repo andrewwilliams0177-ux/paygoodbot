@@ -467,7 +467,7 @@ const tg=window.Telegram?.WebApp;
 if(tg){tg.ready();tg.expand()}
 const API_URL='https://paygoodbot-production.up.railway.app';
 const SUPPORT_URL='https://t.me/Andrew_Williams_Work';
-let authMode='register',user={name:''},balance=0,cards=[],ops=[],twofa=false,token='',needCode=false;
+let authMode='register',user={name:''},balance=0,cards=[],ops=[],pend=[],twofa=false,token='',needCode=false;
 const grads={
   basic:'linear-gradient(135deg,#003580,#0066cc,#0099ff)',
   plus:'linear-gradient(135deg,#001a5c,#0044aa,#0088ee)',
@@ -543,7 +543,8 @@ async function refresh(){
   if(!r.ok)return false;
   const d=r.data;
   balance=d.balance;twofa=d.twofa;
-  cards=d.cards.map(c=>({plan:c.plan,grad:grads[c.plan_id]||grads.basic,pan:String(c.pan).replace(/\s/g,'').replace(/(.{4})/g,'$1 ').trim(),exp:c.exp}));
+  cards=d.cards.map(c=>({plan:c.plan,grad:grads[c.plan_id]||grads.basic,pan:String(c.pan).replace(/\s/g,'').replace(/(.{4})/g,'$1 ').trim(),exp:c.exp,cvv:c.cvv}));
+  pend=d.orders||[];
   ops=d.ops;
   updBal();renderCards();updPf();
   return true;
@@ -591,6 +592,13 @@ async function doBuy(pid){
     return;
   }
   await refresh();
+  if(r.data.pending){
+    openSub('Заявка отправлена',`<div class="sec-box"><div class="sec-h">⏳ Заявка #${esc(r.data.order_id)} принята</div>
+      <div class="sec-p">Карта выдаётся вручную. Как только она будет готова, придёт сообщение в бота и карта появится в разделе «Мои карты». Обычно это занимает несколько минут.</div>
+      <div class="sec-p">Деньги списаны с баланса; если заявку отклонят, они вернутся автоматически.</div>
+      <button class="btn-tech primary" onclick="closeSub();switchTab('cards')">Мои карты</button></div>`);
+    return;
+  }
   const c=r.data.card;
   openSub('Карта выпущена',`<div class="sec-box"><div class="sec-h">✅ ${esc(c.plan)}</div>
     <div class="sec-p">Сохраните данные карты. CVV показывается только сейчас.</div>
@@ -601,11 +609,12 @@ async function doBuy(pid){
 function quickBuy(id){showModal();setTimeout(()=>doBuy(id),150)}
 function showModal(){$('mod-bal').textContent='Баланс: '+fmt(balance)+' ₽';$('modal-ov').classList.add('on')}
 function closeModal(e){if(!e||e.target===$('modal-ov'))$('modal-ov').classList.remove('on')}
-function cardHTML(c){return`<div class="vc" style="background:${c.grad}"><div class="vc-glow"></div><div class="vc-glow2"></div><div class="vc-type">${esc(c.plan)}</div><div class="vc-chip"></div><div class="vc-num">${esc(c.pan)}</div><div class="vc-foot"><div><div class="vc-exp-l">До</div><div class="vc-exp">${esc(c.exp)}</div></div><div class="vc-badge">Активна</div></div></div>`}
+function pendHTML(o){return`<div class="vc" style="background:${grads[o.plan_id]||grads.basic};opacity:.75"><div class="vc-glow"></div><div class="vc-type">${esc(o.plan_title)}</div><div class="vc-chip"></div><div class="vc-num" style="font-size:15px">⏳ Ожидает выдачи</div><div class="vc-foot"><div><div class="vc-exp-l">Заявка</div><div class="vc-exp">#${o.order_id}</div></div><div class="vc-badge">В работе</div></div></div>`}
+function cardHTML(c,full){return`<div class="vc" style="background:${c.grad}"><div class="vc-glow"></div><div class="vc-glow2"></div><div class="vc-type">${esc(c.plan)}</div><div class="vc-chip"></div><div class="vc-num">${esc(c.pan)}</div><div class="vc-foot"><div><div class="vc-exp-l">До</div><div class="vc-exp">${esc(c.exp)}${full&&c.cvv?' · CVV '+esc(c.cvv):''}</div></div><div class="vc-badge">Активна</div></div></div>`}
 function renderCards(){
   const add=`<div class="vc new-card" onclick="showModal()"><div class="nc-icon">＋</div><div class="nc-txt">Новая карта</div></div>`;
-  $('home-cards').innerHTML=cards.map(cardHTML).join('')+add;
-  $('cards-full').innerHTML=cards.length?cards.map(cardHTML).join(''):`<div style="text-align:center;padding:50px 20px;color:var(--text2)"><div style="font-size:44px;margin-bottom:12px">💳</div><div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:6px">Карт пока нет</div><div style="font-size:12px">Купите первую карту</div></div>`;
+  $('home-cards').innerHTML=pend.map(pendHTML).join('')+cards.map(c=>cardHTML(c)).join('')+add;
+  $('cards-full').innerHTML=(cards.length||pend.length)?pend.map(pendHTML).join('')+cards.map(c=>cardHTML(c,true)).join(''):`<div style="text-align:center;padding:50px 20px;color:var(--text2)"><div style="font-size:44px;margin-bottom:12px">💳</div><div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:6px">Карт пока нет</div><div style="font-size:12px">Купите первую карту</div></div>`;
 }
 function updBal(){$('h-bal').innerHTML=fmt(balance)+' <small>₽</small>'}
 function updPf(){$('pf-bal').textContent=fmt(balance)+' ₽';$('pf-cards').textContent=cards.length;$('pf-tops').textContent=ops.filter(o=>o.kind==='topup').length}
@@ -629,7 +638,10 @@ async function openHistory(){
   $('sub-body').innerHTML=ops.map(o=>{
     const top=o.kind==='topup';
     const t=top?'Пополнение · '+esc(o.title||''):'Покупка карты · '+esc(o.title||'');
-    return `<div class="op"><div class="op-ic">${top?'⬇️':'💳'}</div><div class="op-i"><div class="op-t">${t}</div><div class="op-d">${fmtDate(o.created_at)}</div></div><div class="op-a ${top?'p':'m'}">${top?'+':'−'}${fmt(o.amount)} ₽</div></div>`;
+    const st=o.status==='pending'?' · ⏳ ожидает выдачи':o.status==='refunded'?' · ↩️ возврат':'';
+    const cls=o.status==='refunded'?'m':(top?'p':'m');
+    const sign=o.status==='refunded'?'':(top?'+':'−');
+    return `<div class="op"><div class="op-ic">${top?'⬇️':'💳'}</div><div class="op-i"><div class="op-t">${t}</div><div class="op-d">${fmtDate(o.created_at)}${st}</div></div><div class="op-a ${cls}" ${o.status==='refunded'?'style="text-decoration:line-through;opacity:.6"':''}>${sign}${fmt(o.amount)} ₽</div></div>`;
   }).join('');
 }
 

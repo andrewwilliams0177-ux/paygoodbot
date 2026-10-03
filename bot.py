@@ -9,6 +9,8 @@ import config
 from api import create_app, init_api_db
 from db.database import init_db
 from handlers.main import router as main_router
+from manual import router as manual_router
+from orders import init_orders_db
 
 
 async def main():
@@ -16,6 +18,7 @@ async def main():
 
     init_db()
     init_api_db()
+    init_orders_db()
 
     # HTTP-сервер для Mini App (регистрация и вход по паролю)
     runner = web.AppRunner(create_app())
@@ -25,6 +28,7 @@ async def main():
 
     bot = Bot(token=config.BOT_TOKEN)
     dp = Dispatcher()
+    dp.include_router(manual_router)  # раньше main: перехватывает покупки в ручном режиме
     dp.include_router(main_router)
 
     await bot.delete_webhook(drop_pending_updates=True)

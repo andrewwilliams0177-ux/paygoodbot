@@ -23,6 +23,7 @@ from aiohttp import web
 import config
 from db import database as db
 from db.database import get_conn
+import orders
 from services.card_provider import get_card_provider
 
 ALLOWED_ORIGIN = os.getenv("MINIAPP_ORIGIN", "https://andrewwilliams0177-ux.github.io")
@@ -302,6 +303,7 @@ async def state(request):
             "plan_id": c["plan_id"],
             "pan": c["pan"],
             "exp": c["exp"],
+            "cvv": c.get("cvv"),
             "status": c["status"],
         })
     with get_conn() as conn:
@@ -316,6 +318,7 @@ async def state(request):
         "balance": db.get_balance(user["id"]),
         "cards": cards,
         "ops": [dict(o) for o in ops],
+        "orders": orders.pending_orders(user["id"]),
         "twofa": bool(acc and acc["totp_secret"]),
         "mock_payments": MOCK_PAYMENTS,
     })
@@ -348,6 +351,14 @@ async def buy(request):
     if not plan:
         return _err("Тариф не найден", 400)
     db.get_or_create_user(user["id"], user.get("username"))
+    if orders.manual_mode():
+        # ручная выдача: заявка уходит в админ-группу
+        name = _display_name(user)
+        oid, e = await orders.place_order(user["id"], name, user.get("username"), plan)
+        if e:
+            return _err(e, 402 if e.startswith("Недостаточно") else 502)
+        return web.json_response({"ok": True, "pending": True, "order_id": oid,
+                                  "balance": db.get_balance(user["id"])})
     if not db.deduct_balance(user["id"], plan["price"]):
         return _err("Недостаточно средств", 402)
     try:
