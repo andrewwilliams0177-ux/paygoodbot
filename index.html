@@ -275,7 +275,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,'SF Pro Di
 .mod-bal{font-size:12px;color:var(--text2);text-align:center;margin-bottom:18px}
 
 /* toast */
-.toast{position:fixed;bottom:88px;left:50%;transform:translateX(-50%) translateY(10px);background:rgba(5,18,40,.95);backdrop-filter:blur(12px);border:1px solid rgba(0,150,255,.3);color:#e8f4ff;padding:10px 20px;border-radius:20px;font-size:12px;font-weight:600;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;z-index:999;box-shadow:0 4px 20px rgba(0,100,200,.3)}
+.toast{position:fixed;bottom:88px;left:50%;transform:translateX(-50%) translateY(10px);background:rgba(5,18,40,.95);backdrop-filter:blur(12px);border:1px solid rgba(0,150,255,.3);color:#e8f4ff;padding:10px 20px;border-radius:20px;font-size:12px;font-weight:600;opacity:0;transition:all .3s;pointer-events:none;white-space:normal;max-width:86vw;text-align:center;z-index:999;box-shadow:0 4px 20px rgba(0,100,200,.3)}
 .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 
 .sub{position:fixed;inset:0;background:var(--bg);z-index:50;display:none;flex-direction:column}
@@ -290,7 +290,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,'SF Pro Di
 .op-a{font-size:14px;font-weight:800}.op-a.p{color:var(--green)}.op-a.m{color:var(--text)}
 .sec-box{background:linear-gradient(135deg,rgba(5,18,40,1),rgba(8,28,58,1));border:1px solid rgba(0,100,200,.15);border-radius:14px;padding:14px;margin-bottom:14px;display:flex;flex-direction:column;gap:10px}
 .sec-h{font-size:14px;font-weight:700}.sec-p{font-size:12px;color:var(--text2);line-height:1.4}
-.sec-key{font-family:ui-monospace,monospace;font-size:15px;letter-spacing:1px;word-break:break-all;color:var(--accent3);background:rgba(0,60,120,.3);padding:10px;border-radius:10px;user-select:all}
+.sec-key{font-family:ui-monospace,monospace;font-size:15px;letter-spacing:1px;word-break:break-all;color:var(--accent3);background:rgba(0,60,120,.3);padding:10px;border-radius:10px;-webkit-user-select:all;user-select:all;-webkit-touch-callout:default}
 .on-badge{display:inline-block;font-size:10px;font-weight:700;padding:3px 8px;border-radius:10px;background:rgba(0,230,118,.12);color:var(--green);margin-left:6px}
 </style>
 </head>
@@ -556,6 +556,7 @@ function switchTab(t){
     $('ni-'+id).classList.toggle('on',id===t);
   });
   if(t==='profile')updPf();
+  if(token&&t!=='topup')refresh();
 }
 const methods={
   sbp:{name:'СБП',ic:'⚡',badge:'СБП',t:'Оплата через СБП',s:'Откроется ссылка или QR-код вашего банка'},
@@ -622,6 +623,9 @@ async function logout(){
   await api('/api/logout');
   token='';balance=0;cards=[];ops=[];updBal();renderCards();enter();showToast('👋 Выход выполнен');
 }
+// автообновление: подтягиваем карту, как только её выдадут
+setInterval(()=>{if(token&&!document.hidden&&(pend.length||$('s-app').classList.contains('on')))refresh()},10000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&token)refresh()});
 function showToast(m){const t=$('toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),2300)}
 
 // ── подстраницы ──
@@ -672,13 +676,41 @@ async function changePass(){
   ['cp-old','cp-new','cp-new2'].forEach(i=>$(i).value='');
   showToast('✅ Пароль изменён');
 }
+function copyText(t,quiet){
+  const done=()=>{if(!quiet)showToast('📋 Скопировано')};
+  const fb=()=>{
+    const a=document.createElement('textarea');a.value=t;a.setAttribute('readonly','');
+    a.style.cssText='position:fixed;top:0;left:0;opacity:0;font-size:16px';
+    document.body.appendChild(a);a.focus();a.select();a.setSelectionRange(0,t.length);
+    let ok=false;try{ok=document.execCommand('copy')}catch(e){}
+    document.body.removeChild(a);
+    ok?done():(quiet||showToast('Не удалось. Нажмите и удерживайте ключ'));
+  };
+  if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(t).then(done,fb);else fb();
+}
+let authUri='',authSecret='';
+function openAuthApp(){
+  // ключ копируем заранее: если телефон не откроет приложение, его останется только вставить
+  copyText(authSecret,true);
+  let left=false;const onHide=()=>{if(document.hidden)left=true};
+  document.addEventListener('visibilitychange',onHide);
+  try{
+    if(tg&&tg.openLink){tg.openLink(authUri)}else{window.location.href=authUri}
+  }catch(e){try{window.location.href=authUri}catch(_){}}
+  setTimeout(()=>{
+    document.removeEventListener('visibilitychange',onHide);
+    if(!left)showToast('Ключ скопирован. Откройте Authenticator → «+» → «Ввести ключ» и вставьте его');
+  },1500);
+}
 async function tfSetup(){
   const r=await api('/api/2fa/setup');
   if(!r.ok){if(!r.data.relogin)showToast('❌ '+(r.data.error||'Ошибка'));return}
+  authUri=r.data.uri;authSecret=r.data.secret;
   $('tf-box').innerHTML=`<div class="sec-h">Включение 2FA</div>
     <div class="sec-p">1. Откройте приложение-аутентификатор и добавьте аккаунт по ключу (или нажмите кнопку ниже).</div>
-    <div class="sec-key">${esc(r.data.secret)}</div>
-    <a class="btn-tech ghost" style="text-align:center;text-decoration:none;display:block" href="${esc(r.data.uri)}">Открыть в аутентификаторе</a>
+    <div class="sec-key" id="tf-secret">${esc(r.data.secret)}</div>
+    <button class="btn-tech primary" onclick="copyText('${esc(r.data.secret)}')">📋 Скопировать ключ</button>
+    <button class="btn-tech ghost" onclick="openAuthApp()">Открыть в аутентификаторе</button>
     <div class="sec-p">2. Введите 6-значный код, который он покажет.</div>
     <div class="field"><div class="field-icon">🔑</div><input type="text" inputmode="numeric" maxlength="6" id="tf-code" placeholder="Код из приложения" autocomplete="off"></div>
     <button class="btn-tech primary" onclick="tfEnable()">Подтвердить</button>`;
