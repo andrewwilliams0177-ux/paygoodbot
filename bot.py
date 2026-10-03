@@ -1,9 +1,12 @@
 import asyncio
 import logging
+import os
 
 from aiogram import Bot, Dispatcher
+from aiohttp import web
 
 import config
+from api import create_app, init_api_db
 from db.database import init_db
 from handlers.main import router as main_router
 
@@ -12,6 +15,13 @@ async def main():
     logging.basicConfig(level=logging.INFO)
 
     init_db()
+    init_api_db()
+
+    # HTTP-сервер для Mini App (регистрация и вход по паролю)
+    runner = web.AppRunner(create_app())
+    await runner.setup()
+    port = int(os.getenv("PORT", "8080"))
+    await web.TCPSite(runner, "0.0.0.0", port).start()
 
     bot = Bot(token=config.BOT_TOKEN)
     dp = Dispatcher()

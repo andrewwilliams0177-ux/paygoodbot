@@ -158,6 +158,8 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,'SF Pro Di
 .hero-amount{font-size:36px;font-weight:900;letter-spacing:-1.5px;line-height:1;position:relative;z-index:1;color:#e8f4ff}
 .hero-amount small{font-size:18px;font-weight:600;color:var(--text2);margin-left:3px}
 .hero-row{display:flex;align-items:flex-start;justify-content:space-between;position:relative;z-index:1}
+.hero-top{align-items:center;margin-bottom:8px}
+.hero-top .hero-label{margin-bottom:0}
 .hero-status{background:rgba(0,230,118,.1);border:1px solid rgba(0,230,118,.3);color:var(--green);font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px;display:flex;align-items:center;gap:4px}
 .hero-status::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
@@ -224,6 +226,13 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,'SF Pro Di
 .tu-icon{font-size:22px;margin-bottom:8px;position:relative;z-index:1}
 .tu-amount{font-size:20px;font-weight:800;color:#e8f4ff;position:relative;z-index:1}
 .tu-label{font-size:10px;color:var(--text2);margin-top:3px;position:relative;z-index:1}
+.pm-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
+.pm{background:linear-gradient(135deg,rgba(5,18,40,1),rgba(8,28,58,1));border:1.5px solid rgba(0,100,200,.2);border-radius:14px;padding:13px 12px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:10px}
+.pm:active{transform:scale(.97)}
+.pm.on{border-color:var(--accent);box-shadow:0 0 18px rgba(0,150,255,.25);background:linear-gradient(135deg,rgba(0,40,90,1),rgba(0,64,130,1))}
+.pm-ic{font-size:22px;flex-shrink:0}
+.pm-t{font-size:13px;font-weight:700;color:#e8f4ff;line-height:1.2}
+.pm-s{font-size:10px;color:var(--text2);margin-top:2px}
 .sbp-block{margin:12px 14px 0;background:linear-gradient(135deg,rgba(0,20,60,1),rgba(0,40,100,1));border:1px solid rgba(0,120,255,.25);border-radius:14px;padding:15px;display:flex;align-items:center;gap:12px}
 .sbp-txt{flex:1}
 .sbp-txt-t{font-size:13px;font-weight:700;color:#e8f4ff}
@@ -268,6 +277,21 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,'SF Pro Di
 /* toast */
 .toast{position:fixed;bottom:88px;left:50%;transform:translateX(-50%) translateY(10px);background:rgba(5,18,40,.95);backdrop-filter:blur(12px);border:1px solid rgba(0,150,255,.3);color:#e8f4ff;padding:10px 20px;border-radius:20px;font-size:12px;font-weight:600;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;z-index:999;box-shadow:0 4px 20px rgba(0,100,200,.3)}
 .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+.sub{position:fixed;inset:0;background:var(--bg);z-index:50;display:none;flex-direction:column}
+.sub.on{display:flex}
+.sub-hd{display:flex;align-items:center;gap:10px;padding:16px 14px;border-bottom:1px solid rgba(0,100,200,.2)}
+.sub-back{font-size:30px;line-height:24px;color:var(--accent);cursor:pointer;padding:0 8px}
+.sub-t{font-size:17px;font-weight:700}
+.sub-body{flex:1;overflow-y:auto;padding:14px}
+.op{display:flex;align-items:center;gap:12px;padding:12px;margin-bottom:8px;background:linear-gradient(135deg,rgba(5,18,40,1),rgba(8,28,58,1));border:1px solid rgba(0,100,200,.15);border-radius:14px}
+.op-ic{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;background:rgba(0,100,200,.2)}
+.op-i{flex:1;min-width:0}.op-t{font-size:13px;font-weight:600}.op-d{font-size:11px;color:var(--text2);margin-top:2px}
+.op-a{font-size:14px;font-weight:800}.op-a.p{color:var(--green)}.op-a.m{color:var(--text)}
+.sec-box{background:linear-gradient(135deg,rgba(5,18,40,1),rgba(8,28,58,1));border:1px solid rgba(0,100,200,.15);border-radius:14px;padding:14px;margin-bottom:14px;display:flex;flex-direction:column;gap:10px}
+.sec-h{font-size:14px;font-weight:700}.sec-p{font-size:12px;color:var(--text2);line-height:1.4}
+.sec-key{font-family:ui-monospace,monospace;font-size:15px;letter-spacing:1px;word-break:break-all;color:var(--accent3);background:rgba(0,60,120,.3);padding:10px;border-radius:10px;user-select:all}
+.on-badge{display:inline-block;font-size:10px;font-weight:700;padding:3px 8px;border-radius:10px;background:rgba(0,230,118,.12);color:var(--green);margin-left:6px}
 </style>
 </head>
 <body>
@@ -301,8 +325,8 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,'SF Pro Di
       <div class="sp-card"><div class="sp-chip"></div><div class="sp-num">4*** 89**</div><div class="sp-dot"></div><div class="sp-logo">PGB</div></div>
     </div>
     <div class="splash-btns">
-      <button class="btn-tech primary" onclick="goAuth('register')">Создать аккаунт</button>
-      <button class="btn-tech ghost" onclick="goAuth('login')">Войти</button>
+      <button class="btn-tech primary" id="enter-btn" onclick="enter()">Продолжить</button>
+      <div class="auth-sw" id="enter-note" style="min-height:18px"></div>
     </div>
   </div>
 </div>
@@ -312,14 +336,14 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,'SF Pro Di
   <div class="auth-hdr"><div class="auth-hdr-inner"><div class="auth-hdr-cell"></div><div class="auth-hdr-cell"></div><div class="auth-hdr-cell"></div><div class="auth-hdr-cell"></div><div class="auth-hdr-cell"></div><div class="auth-hdr-cell"></div></div></div>
   <div class="auth-logo">PG</div>
   <div class="auth-title" id="auth-title">Регистрация</div>
-  <div class="auth-sub" id="auth-sub">Создайте аккаунт PayGoodBot</div>
+  <div class="auth-sub" id="auth-sub"></div>
   <div class="auth-form">
-    <div class="field" id="f-name"><div class="field-icon">👤</div><input type="text" placeholder="Ваше имя" id="inp-name"></div>
-    <div class="field"><div class="field-icon">✉️</div><input type="email" placeholder="Email адрес" id="inp-email"></div>
-    <div class="field"><div class="field-icon">🔒</div><input type="password" placeholder="Пароль (мин. 4 символа)" id="inp-pass"></div>
+    <div class="field" style="opacity:.85"><div class="field-icon">👤</div><input type="text" id="inp-name" readonly></div>
+    <div class="field"><div class="field-icon">🔒</div><input type="password" placeholder="Пароль" id="inp-pass" autocomplete="off"></div>
+    <div class="field" id="f-pass2"><div class="field-icon">🔒</div><input type="password" placeholder="Повторите пароль" id="inp-pass2" autocomplete="off"></div>
+    <div class="field" id="f-code" style="display:none"><div class="field-icon">🔑</div><input type="text" inputmode="numeric" maxlength="6" placeholder="Код из приложения (2FA)" id="inp-code" autocomplete="off"></div>
     <button class="btn-tech primary" id="auth-btn" onclick="doAuth()">Создать аккаунт</button>
-    <div class="auth-div">или</div>
-    <div class="auth-sw" id="auth-sw">Уже есть аккаунт? <span onclick="goAuth('login')">Войти</span></div>
+    <div class="auth-sw" id="auth-hint" style="font-size:12px"></div>
   </div>
 </div>
 
@@ -333,16 +357,11 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,'SF Pro Di
   <!-- HOME -->
   <div class="tab-c" id="tab-home" style="display:block">
     <div class="hero">
-      <div class="hero-dash">
-        <div class="hd-item">● ACTIVE</div>
-        <div class="hd-item">180+ countries</div>
-        <div class="hd-item">SBP ready</div>
-      </div>
-      <div class="hero-label">ВАШ БАЛАНС</div>
-      <div class="hero-row">
-        <div class="hero-amount" id="h-bal">0 <small>₽</small></div>
+      <div class="hero-row hero-top">
+        <div class="hero-label">ВАШ БАЛАНС</div>
         <div class="hero-status">Активен</div>
       </div>
+      <div class="hero-amount" id="h-bal">0 <small>₽</small></div>
       <div class="hero-actions">
         <button class="hbtn p" onclick="switchTab('topup')">➕ Пополнить</button>
         <button class="hbtn s" onclick="switchTab('cards')">💳 Карты</button>
@@ -373,7 +392,14 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,'SF Pro Di
   <!-- TOPUP -->
   <div class="tab-c" id="tab-topup" style="display:none">
     <div class="section">
-      <div class="sec-hdr"><div class="sec-title">Пополнить баланс</div></div>
+      <div class="sec-hdr"><div class="sec-title">Способ оплаты</div></div>
+      <div class="pm-grid">
+        <div class="pm" id="pm-sbp" onclick="selectMethod('sbp')"><div class="pm-ic">⚡</div><div><div class="pm-t">СБП</div><div class="pm-s">По QR или ссылке</div></div></div>
+        <div class="pm" id="pm-card" onclick="selectMethod('card')"><div class="pm-ic">💳</div><div><div class="pm-t">Карта РФ</div><div class="pm-s">Visa · MC · МИР</div></div></div>
+        <div class="pm" id="pm-crypto" onclick="selectMethod('crypto')"><div class="pm-ic">🪙</div><div><div class="pm-t">Криптовалюта</div><div class="pm-s">USDT и др.</div></div></div>
+        <div class="pm" id="pm-stars" onclick="selectMethod('stars')"><div class="pm-ic">⭐</div><div><div class="pm-t">Telegram Stars</div><div class="pm-s">Прямо в Telegram</div></div></div>
+      </div>
+      <div class="sec-hdr"><div class="sec-title">Сумма пополнения</div></div>
       <div class="tu-grid">
         <div class="tu" onclick="topUp(300)"><div class="tu-icon">💰</div><div class="tu-amount">300 ₽</div><div class="tu-label">Быстро</div></div>
         <div class="tu" onclick="topUp(600)"><div class="tu-icon">💰</div><div class="tu-amount">600 ₽</div><div class="tu-label">Популярно</div></div>
@@ -381,9 +407,9 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,'SF Pro Di
         <div class="tu" onclick="topUp(2000)"><div class="tu-icon">💰</div><div class="tu-amount">2 000 ₽</div><div class="tu-label">Максимум</div></div>
       </div>
       <div class="sbp-block">
-        <div style="font-size:28px">⚡</div>
-        <div class="sbp-txt"><div class="sbp-txt-t">Мгновенное зачисление</div><div class="sbp-txt-s">Без комиссии, 24/7</div></div>
-        <div class="sbp-badge">СБП</div>
+        <div style="font-size:28px" id="pm-info-ic">⚡</div>
+        <div class="sbp-txt"><div class="sbp-txt-t" id="pm-info-t"></div><div class="sbp-txt-s" id="pm-info-s"></div></div>
+        <div class="sbp-badge" id="pm-info-b">СБП</div>
       </div>
     </div>
   </div>
@@ -401,9 +427,9 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,'SF Pro Di
     </div>
     <div class="menu">
       <div class="mi" onclick="switchTab('cards')"><div class="mi-ic">💳</div><div class="mi-t">Мои карты</div><div class="mi-arr">›</div></div>
-      <div class="mi"><div class="mi-ic">📋</div><div class="mi-t">История операций</div><div class="mi-arr">›</div></div>
-      <div class="mi"><div class="mi-ic">🔒</div><div class="mi-t">Безопасность</div><div class="mi-arr">›</div></div>
-      <div class="mi"><div class="mi-ic">💬</div><div class="mi-t">Поддержка</div><div class="mi-arr">›</div></div>
+      <div class="mi" onclick="openHistory()"><div class="mi-ic">📋</div><div class="mi-t">История операций</div><div class="mi-arr">›</div></div>
+      <div class="mi" onclick="openSecurity()"><div class="mi-ic">🔒</div><div class="mi-t">Безопасность</div><div class="mi-arr">›</div></div>
+      <div class="mi" onclick="openSupport()"><div class="mi-ic">💬</div><div class="mi-t">Поддержка</div><div class="mi-arr">›</div></div>
       <div class="mi" onclick="logout()"><div class="mi-ic">🚪</div><div class="mi-t" style="color:#ff6060">Выйти</div><div class="mi-arr">›</div></div>
     </div>
   </div>
@@ -430,72 +456,232 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,'SF Pro Di
   </div>
 </div>
 
+<div class="sub" id="sub">
+  <div class="sub-hd"><div class="sub-back" onclick="closeSub()">‹</div><div class="sub-t" id="sub-t"></div></div>
+  <div class="sub-body" id="sub-body"></div>
+</div>
 <div class="toast" id="toast"></div>
 
 <script>
 const tg=window.Telegram?.WebApp;
 if(tg){tg.ready();tg.expand()}
-let authMode='register',user={name:'',email:''},balance=0,cards=[],topCnt=0;
-const plans={
-  basic:{name:'Basic Virtual Card',price:300,grad:'linear-gradient(135deg,#003580,#0066cc,#0099ff)'},
-  plus:{name:'Plus Virtual Card',price:600,grad:'linear-gradient(135deg,#001a5c,#0044aa,#0088ee)'},
-  pro:{name:'Pro Virtual Card',price:1200,grad:'linear-gradient(135deg,#001228,#002d70,#0055cc)'}
+const API_URL='https://paygoodbot-production.up.railway.app';
+const SUPPORT_URL='https://t.me/Andrew_Williams_Work';
+let authMode='register',user={name:''},balance=0,cards=[],ops=[],twofa=false,token='',needCode=false;
+const grads={
+  basic:'linear-gradient(135deg,#003580,#0066cc,#0099ff)',
+  plus:'linear-gradient(135deg,#001a5c,#0044aa,#0088ee)',
+  pro:'linear-gradient(135deg,#001228,#002d70,#0055cc)'
 };
-if(tg?.initDataUnsafe?.user){const u=tg.initDataUnsafe.user;user.name=u.first_name+(u.last_name?' '+u.last_name:'')}
+const tgUser=tg?.initDataUnsafe?.user;
+if(tgUser)user.name=(tgUser.first_name+' '+(tgUser.last_name||'')).trim();
 function go(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));document.getElementById(id).classList.add('on')}
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=n=>Number(n).toLocaleString('ru');
+
+async function api(path,extra){
+  try{
+    const r=await fetch(API_URL+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({initData:tg?.initData||'',token:token},extra||{}))});
+    const d=await r.json().catch(()=>({}));
+    if(r.status===401&&d.relogin){sessionLost();}
+    return {ok:r.ok,status:r.status,data:d};
+  }catch(e){return {ok:false,status:0,data:{error:'Нет связи с сервером. Попробуйте позже'}}}
+}
+function sessionLost(){token='';closeSub();enter();showToast('🔒 Войдите заново')}
+
+async function enter(){
+  const note=$('enter-note');
+  go('s-splash');
+  if(!tg?.initData){note.textContent='Откройте приложение через Telegram-бота';return}
+  note.textContent='Проверяем…';
+  const r=await api('/api/status');
+  if(!r.ok){note.textContent=r.data.error||'Ошибка сервера';return}
+  note.textContent='';
+  user.name=r.data.name||user.name;
+  goAuth(r.data.registered?'login':'register');
+}
+
 function goAuth(m){
-  authMode=m;const r=m==='register';
-  document.getElementById('auth-title').textContent=r?'Регистрация':'Добро пожаловать';
-  document.getElementById('auth-sub').textContent=r?'Создайте аккаунт PayGoodBot':'Войдите в аккаунт';
-  document.getElementById('f-name').style.display=r?'flex':'none';
-  document.getElementById('auth-btn').textContent=r?'Создать аккаунт':'Войти';
-  document.getElementById('auth-sw').innerHTML=r?'Уже есть аккаунт? <span onclick="goAuth(\'login\')">Войти</span>':'Нет аккаунта? <span onclick="goAuth(\'register\')">Зарегистрироваться</span>';
-  if(user.name&&r)document.getElementById('inp-name').value=user.name;
+  authMode=m;needCode=false;const reg=m==='register';
+  $('auth-title').textContent=reg?'Регистрация':'Вход';
+  $('auth-sub').textContent=reg?'Придумайте пароль для вашего аккаунта':'Введите ваш пароль';
+  $('inp-name').value=user.name;
+  $('f-pass2').style.display=reg?'flex':'none';
+  $('f-code').style.display='none';$('inp-code').value='';
+  $('auth-btn').textContent=reg?'Создать аккаунт':'Войти';
+  $('auth-hint').textContent=reg?'Минимум 6 символов. Запомните его: восстановить пароль нельзя.':'';
+  $('inp-pass').value='';$('inp-pass2').value='';
   go('s-auth');
 }
-function doAuth(){
-  const e=document.getElementById('inp-email').value.trim(),p=document.getElementById('inp-pass').value;
-  if(!e){showToast('⚠️ Введите email');return}
-  if(!p||p.length<4){showToast('⚠️ Минимум 4 символа');return}
-  if(authMode==='register'){const n=document.getElementById('inp-name').value.trim();user.name=n||'Пользователь'}
-  user.email=e;
-  document.getElementById('pf-name').textContent=user.name;
-  document.getElementById('pf-email').textContent=user.email;
-  document.getElementById('pf-av').textContent=user.name?user.name[0].toUpperCase():'P';
-  renderCards();go('s-app');
+
+async function doAuth(){
+  const p=$('inp-pass').value;
+  if(p.length<6){showToast('⚠️ Пароль минимум 6 символов');return}
+  if(authMode==='register'&&p!==$('inp-pass2').value){showToast('⚠️ Пароли не совпадают');return}
+  const body={password:p};
+  if(needCode)body.code=$('inp-code').value.trim();
+  const btn=$('auth-btn');btn.disabled=true;
+  const r=await api(authMode==='register'?'/api/register':'/api/login',body);
+  btn.disabled=false;
+  if(r.data.need_code){needCode=true;$('f-code').style.display='flex';$('inp-code').focus();showToast('🔑 Введите код из приложения');return}
+  if(r.data.need_code===true||(r.data.error&&needCode&&r.status===401)){showToast('❌ '+r.data.error);return}
+  if(!r.ok){showToast('❌ '+(r.data.error||'Ошибка'));return}
+  token=r.data.token;
+  user.name=r.data.name||user.name;
+  $('pf-name').textContent=user.name;
+  $('pf-email').textContent='Telegram-аккаунт';
+  $('pf-av').textContent=user.name?user.name[0].toUpperCase():'P';
+  $('inp-pass').value='';$('inp-pass2').value='';$('inp-code').value='';
+  await refresh();
+  go('s-app');switchTab('home');
   showToast(authMode==='register'?'✅ Аккаунт создан!':'✅ Добро пожаловать!');
 }
+
+async function refresh(){
+  const r=await api('/api/state');
+  if(!r.ok)return false;
+  const d=r.data;
+  balance=d.balance;twofa=d.twofa;
+  cards=d.cards.map(c=>({plan:c.plan,grad:grads[c.plan_id]||grads.basic,pan:String(c.pan).replace(/\s/g,'').replace(/(.{4})/g,'$1 ').trim(),exp:c.exp}));
+  ops=d.ops;
+  updBal();renderCards();updPf();
+  return true;
+}
+
 function switchTab(t){
   ['home','cards','topup','profile'].forEach(id=>{
-    document.getElementById('tab-'+id).style.display=id===t?'block':'none';
-    document.getElementById('ni-'+id).classList.toggle('on',id===t);
+    $('tab-'+id).style.display=id===t?'block':'none';
+    $('ni-'+id).classList.toggle('on',id===t);
   });
   if(t==='profile')updPf();
 }
-function topUp(a){balance+=a;topCnt++;updBal();showToast('✅ Пополнено на '+a.toLocaleString('ru')+' ₽');setTimeout(()=>switchTab('home'),700)}
-function rand(n){return Array.from({length:n},()=>Math.floor(Math.random()*10)).join('')}
-function randPan(){return '4'+rand(3)+' '+rand(4)+' '+rand(4)+' '+rand(4)}
-function randExp(){return String(Math.floor(Math.random()*12)+1).padStart(2,'0')+'/'+(27+Math.floor(Math.random()*3))}
-function doBuy(pid){
-  const p=plans[pid];
-  if(balance<p.price){showToast('❌ Недостаточно средств');closeModal();setTimeout(()=>switchTab('topup'),600);return}
-  balance-=p.price;cards.push({plan:p.name,grad:p.grad,pan:randPan(),exp:randExp()});
-  updBal();renderCards();closeModal();showToast('✅ Карта выпущена!');setTimeout(()=>switchTab('cards'),700);
+const methods={
+  sbp:{name:'СБП',ic:'⚡',badge:'СБП',t:'Оплата через СБП',s:'Откроется ссылка или QR-код вашего банка'},
+  card:{name:'картой РФ',ic:'💳',badge:'КАРТА',t:'Оплата банковской картой',s:'Visa, Mastercard, МИР'},
+  crypto:{name:'криптовалютой',ic:'🪙',badge:'CRYPTO',t:'Оплата криптовалютой',s:'Сумма пересчитывается по курсу'},
+  stars:{name:'Telegram Stars',ic:'⭐',badge:'STARS',t:'Оплата Telegram Stars',s:'Платёж проходит внутри Telegram'}
+};
+let payMethod='sbp';
+function selectMethod(m){
+  payMethod=m;const d=methods[m];
+  Object.keys(methods).forEach(k=>$('pm-'+k).classList.toggle('on',k===m));
+  $('pm-info-ic').textContent=d.ic;
+  $('pm-info-t').textContent=d.t;
+  $('pm-info-s').textContent=d.s;
+  $('pm-info-b').textContent=d.badge;
+}
+let busy=false;
+async function topUp(a){
+  if(busy)return;busy=true;
+  const r=await api('/api/topup',{amount:a,method:payMethod});
+  busy=false;
+  if(!r.ok){if(!(r.status===401&&r.data.relogin))showToast('❌ '+(r.data.error||'Ошибка'));return}
+  await refresh();
+  showToast('✅ Пополнено на '+fmt(a)+' ₽ ('+methods[payMethod].name+')');setTimeout(()=>switchTab('home'),700);
+}
+async function doBuy(pid){
+  if(busy)return;busy=true;
+  const r=await api('/api/buy',{plan:pid});
+  busy=false;closeModal();
+  if(!r.ok){
+    if(r.status===401&&r.data.relogin)return;
+    showToast('❌ '+(r.data.error||'Ошибка'));
+    if(r.status===402)setTimeout(()=>switchTab('topup'),600);
+    return;
+  }
+  await refresh();
+  const c=r.data.card;
+  openSub('Карта выпущена',`<div class="sec-box"><div class="sec-h">✅ ${esc(c.plan)}</div>
+    <div class="sec-p">Сохраните данные карты. CVV показывается только сейчас.</div>
+    <div class="sec-key">${esc(c.pan.replace(/(.{4})/g,'$1 ').trim())}</div>
+    <div class="sec-p">Срок: <b>${esc(c.exp)}</b> &nbsp; CVV: <b>${esc(c.cvv||'—')}</b></div>
+    <button class="btn-tech primary" onclick="closeSub();switchTab('cards')">Мои карты</button></div>`);
 }
 function quickBuy(id){showModal();setTimeout(()=>doBuy(id),150)}
-function showModal(){document.getElementById('mod-bal').textContent='Баланс: '+balance.toLocaleString('ru')+' ₽';document.getElementById('modal-ov').classList.add('on')}
-function closeModal(e){if(!e||e.target===document.getElementById('modal-ov'))document.getElementById('modal-ov').classList.remove('on')}
-function cardHTML(c){return`<div class="vc" style="background:${c.grad}"><div class="vc-glow"></div><div class="vc-glow2"></div><div class="vc-type">${c.plan}</div><div class="vc-chip"></div><div class="vc-num">${c.pan}</div><div class="vc-foot"><div><div class="vc-exp-l">До</div><div class="vc-exp">${c.exp}</div></div><div class="vc-badge">Активна</div></div></div>`}
+function showModal(){$('mod-bal').textContent='Баланс: '+fmt(balance)+' ₽';$('modal-ov').classList.add('on')}
+function closeModal(e){if(!e||e.target===$('modal-ov'))$('modal-ov').classList.remove('on')}
+function cardHTML(c){return`<div class="vc" style="background:${c.grad}"><div class="vc-glow"></div><div class="vc-glow2"></div><div class="vc-type">${esc(c.plan)}</div><div class="vc-chip"></div><div class="vc-num">${esc(c.pan)}</div><div class="vc-foot"><div><div class="vc-exp-l">До</div><div class="vc-exp">${esc(c.exp)}</div></div><div class="vc-badge">Активна</div></div></div>`}
 function renderCards(){
   const add=`<div class="vc new-card" onclick="showModal()"><div class="nc-icon">＋</div><div class="nc-txt">Новая карта</div></div>`;
-  document.getElementById('home-cards').innerHTML=cards.map(cardHTML).join('')+add;
-  document.getElementById('cards-full').innerHTML=cards.length?cards.map(cardHTML).join(''):`<div style="text-align:center;padding:50px 20px;color:var(--text2)"><div style="font-size:44px;margin-bottom:12px">💳</div><div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:6px">Карт пока нет</div><div style="font-size:12px">Купите первую карту</div></div>`;
+  $('home-cards').innerHTML=cards.map(cardHTML).join('')+add;
+  $('cards-full').innerHTML=cards.length?cards.map(cardHTML).join(''):`<div style="text-align:center;padding:50px 20px;color:var(--text2)"><div style="font-size:44px;margin-bottom:12px">💳</div><div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:6px">Карт пока нет</div><div style="font-size:12px">Купите первую карту</div></div>`;
 }
-function updBal(){document.getElementById('h-bal').innerHTML=balance.toLocaleString('ru')+' <small>₽</small>'}
-function updPf(){document.getElementById('pf-bal').textContent=balance.toLocaleString('ru')+' ₽';document.getElementById('pf-cards').textContent=cards.length;document.getElementById('pf-tops').textContent=topCnt}
-function logout(){go('s-splash');balance=0;cards=[];topCnt=0;showToast('👋 Выход выполнен')}
-function showToast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),2300)}
-renderCards();
+function updBal(){$('h-bal').innerHTML=fmt(balance)+' <small>₽</small>'}
+function updPf(){$('pf-bal').textContent=fmt(balance)+' ₽';$('pf-cards').textContent=cards.length;$('pf-tops').textContent=ops.filter(o=>o.kind==='topup').length}
+async function logout(){
+  await api('/api/logout');
+  token='';balance=0;cards=[];ops=[];updBal();renderCards();enter();showToast('👋 Выход выполнен');
+}
+function showToast(m){const t=$('toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),2300)}
+
+// ── подстраницы ──
+function openSub(title,html){$('sub-t').textContent=title;$('sub-body').innerHTML=html;$('sub').classList.add('on')}
+function closeSub(){$('sub').classList.remove('on')}
+function openSupport(){
+  if(tg?.openTelegramLink)tg.openTelegramLink(SUPPORT_URL);else window.open(SUPPORT_URL,'_blank');
+}
+function fmtDate(ts){const d=new Date(ts*1000);return d.toLocaleDateString('ru',{day:'2-digit',month:'2-digit',year:'numeric'})+' '+d.toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'})}
+async function openHistory(){
+  openSub('История операций','<div class="sec-p" style="text-align:center;padding:30px">Загрузка…</div>');
+  await refresh();
+  if(!ops.length){$('sub-body').innerHTML='<div style="text-align:center;padding:50px 20px;color:var(--text2)"><div style="font-size:44px;margin-bottom:12px">📋</div><div style="font-size:14px;font-weight:600;color:var(--text)">Операций пока нет</div></div>';return}
+  $('sub-body').innerHTML=ops.map(o=>{
+    const top=o.kind==='topup';
+    const t=top?'Пополнение · '+esc(o.title||''):'Покупка карты · '+esc(o.title||'');
+    return `<div class="op"><div class="op-ic">${top?'⬇️':'💳'}</div><div class="op-i"><div class="op-t">${t}</div><div class="op-d">${fmtDate(o.created_at)}</div></div><div class="op-a ${top?'p':'m'}">${top?'+':'−'}${fmt(o.amount)} ₽</div></div>`;
+  }).join('');
+}
+
+function openSecurity(){
+  const badge=twofa?'<span class="on-badge">включена</span>':'';
+  openSub('Безопасность',`
+  <div class="sec-box"><div class="sec-h">Смена пароля</div>
+    <div class="field"><div class="field-icon">🔒</div><input type="password" id="cp-old" placeholder="Текущий пароль" autocomplete="off"></div>
+    <div class="field"><div class="field-icon">🔑</div><input type="password" id="cp-new" placeholder="Новый пароль (от 6 символов)" autocomplete="off"></div>
+    <div class="field"><div class="field-icon">🔑</div><input type="password" id="cp-new2" placeholder="Повторите новый пароль" autocomplete="off"></div>
+    <button class="btn-tech primary" onclick="changePass()">Сменить пароль</button></div>
+  <div class="sec-box" id="tf-box"><div class="sec-h">Двухфакторная защита ${badge}</div>${tfInner()}</div>`);
+}
+function tfInner(){
+  if(twofa)return `<div class="sec-p">При входе нужен код из приложения-аутентификатора. Чтобы отключить, введите пароль и текущий код.</div>
+    <div class="field"><div class="field-icon">🔒</div><input type="password" id="tf-pass" placeholder="Пароль" autocomplete="off"></div>
+    <div class="field"><div class="field-icon">🔑</div><input type="text" inputmode="numeric" maxlength="6" id="tf-code" placeholder="Код из приложения" autocomplete="off"></div>
+    <button class="btn-tech ghost" onclick="tfDisable()">Отключить 2FA</button>`;
+  return `<div class="sec-p">Дополнительный код из приложения (Google Authenticator, Authy и т.п.) при каждом входе.</div>
+    <button class="btn-tech primary" onclick="tfSetup()">Включить 2FA</button>`;
+}
+async function changePass(){
+  const o=$('cp-old').value,n=$('cp-new').value;
+  if(n.length<6){showToast('⚠️ Новый пароль минимум 6 символов');return}
+  if(n!==$('cp-new2').value){showToast('⚠️ Пароли не совпадают');return}
+  const r=await api('/api/change_password',{old:o,new:n});
+  if(!r.ok){if(!r.data.relogin)showToast('❌ '+(r.data.error||'Ошибка'));return}
+  ['cp-old','cp-new','cp-new2'].forEach(i=>$(i).value='');
+  showToast('✅ Пароль изменён');
+}
+async function tfSetup(){
+  const r=await api('/api/2fa/setup');
+  if(!r.ok){if(!r.data.relogin)showToast('❌ '+(r.data.error||'Ошибка'));return}
+  $('tf-box').innerHTML=`<div class="sec-h">Включение 2FA</div>
+    <div class="sec-p">1. Откройте приложение-аутентификатор и добавьте аккаунт по ключу (или нажмите кнопку ниже).</div>
+    <div class="sec-key">${esc(r.data.secret)}</div>
+    <a class="btn-tech ghost" style="text-align:center;text-decoration:none;display:block" href="${esc(r.data.uri)}">Открыть в аутентификаторе</a>
+    <div class="sec-p">2. Введите 6-значный код, который он покажет.</div>
+    <div class="field"><div class="field-icon">🔑</div><input type="text" inputmode="numeric" maxlength="6" id="tf-code" placeholder="Код из приложения" autocomplete="off"></div>
+    <button class="btn-tech primary" onclick="tfEnable()">Подтвердить</button>`;
+}
+async function tfEnable(){
+  const r=await api('/api/2fa/enable',{code:$('tf-code').value.trim()});
+  if(!r.ok){if(!r.data.relogin)showToast('❌ '+(r.data.error||'Ошибка'));return}
+  twofa=true;showToast('✅ 2FA включена');openSecurity();
+}
+async function tfDisable(){
+  const r=await api('/api/2fa/disable',{password:$('tf-pass').value,code:$('tf-code').value.trim()});
+  if(!r.ok){if(!r.data.relogin)showToast('❌ '+(r.data.error||'Ошибка'));return}
+  twofa=false;showToast('2FA отключена');openSecurity();
+}
+renderCards();selectMethod('sbp');
 </script>
 </body>
 </html>
