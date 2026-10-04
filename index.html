@@ -438,6 +438,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,'SF Pro Di
       <div class="mi" onclick="switchTab('cards')"><div class="mi-ic">💳</div><div class="mi-t">Мои карты</div><div class="mi-arr">›</div></div>
       <div class="mi" onclick="openHistory()"><div class="mi-ic">📋</div><div class="mi-t">История операций</div><div class="mi-arr">›</div></div>
       <div class="mi" onclick="openSecurity()"><div class="mi-ic">🔒</div><div class="mi-t">Безопасность</div><div class="mi-arr">›</div></div>
+      <div class="mi" onclick="openChannel()"><div class="mi-ic">📢</div><div class="mi-t">Наш канал</div><div class="mi-arr">›</div></div>
       <div class="mi" id="mi-kb" style="display:none" onclick="openKb()"><div class="mi-ic">📚</div><div class="mi-t">База знаний</div><div class="mi-arr">›</div></div>
       <div class="mi" id="mi-site" style="display:none" onclick="openSite()"><div class="mi-ic">🌐</div><div class="mi-t">Наш сайт</div><div class="mi-arr">›</div></div>
       <div class="mi" onclick="openSupport()"><div class="mi-ic">💬</div><div class="mi-t">Поддержка</div><div class="mi-arr">›</div></div>
@@ -480,6 +481,7 @@ const IN_TG=!!(tg&&tg.initData);   // true — открыто внутри Teleg
 const BOT_USERNAME='PayGoodBot_bot';
 let tgAuth=null;let tgTicket='';                    // данные входа через Telegram (только для сайта)
 const API_URL='https://paygoodbot-production.up.railway.app';
+const CHANNEL_URL='https://t.me/paygood_oficial';
 const SUPPORT_URL='https://t.me/Andrew_Williams_Work';
 let siteUrl='',kbUrl='';
 let authMode='register',user={name:''},balance=0,cards=[],ops=[],pend=[],twofa=false,token='',needCode=false;
@@ -687,6 +689,9 @@ function logoClick(inApp){
 function openSite(){
   if(!siteUrl)return;
   if(IN_TG&&tg.openLink)tg.openLink(siteUrl);else window.open(siteUrl,'_blank');
+}
+function openChannel(){
+  if(IN_TG&&tg.openTelegramLink)tg.openTelegramLink(CHANNEL_URL);else window.open(CHANNEL_URL,'_blank');
 }
 function openKb(){
   if(!kbUrl)return;

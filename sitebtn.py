@@ -22,6 +22,9 @@ def patch_menu():
             rows.append([InlineKeyboardButton(text="📚 База знаний", url=kb_url)])
         if url.startswith("https://"):
             rows.append([InlineKeyboardButton(text="🌐 Наш сайт", url=url)])
+        channel = os.getenv("CHANNEL_URL", "https://t.me/paygood_oficial").strip()
+        if channel.startswith("https://"):
+            rows.append([InlineKeyboardButton(text="📢 Наш канал", url=channel)])
         if len(rows) == len(markup.inline_keyboard):
             return markup
         return InlineKeyboardMarkup(inline_keyboard=rows)
