@@ -37,6 +37,7 @@ ALLOWED_ORIGINS = [
 MOCK_PAYMENTS = os.getenv("MOCK_PAYMENTS", "1") == "1"
 BOT_USERNAME = os.getenv("BOT_USERNAME", "PayGoodBot_bot").strip().lstrip("@")
 SITE_URL = os.getenv("SITE_URL", "").strip()   # адрес сайта на Vercel (для кнопки «Наш сайт»)
+KB_URL = os.getenv("KB_URL", "").strip()       # адрес базы знаний (для кнопки «База знаний»)
 
 INITDATA_MAX_AGE = 24 * 3600
 SESSION_TTL = 7 * 24 * 3600
@@ -263,7 +264,7 @@ async def status(request):
         return err
     with get_conn() as conn:
         row = _get_account(conn, user["id"])
-    return web.json_response({"registered": bool(row), "name": _display_name(user), "site_url": SITE_URL})
+    return web.json_response({"registered": bool(row), "name": _display_name(user), "site_url": SITE_URL, "kb_url": KB_URL})
 
 
 async def register(request):
@@ -386,6 +387,7 @@ async def state(request):
         "twofa": bool(acc and acc["totp_secret"]),
         "mock_payments": MOCK_PAYMENTS,
         "site_url": SITE_URL,
+        "kb_url": KB_URL,
     })
 
 

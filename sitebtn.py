@@ -15,11 +15,15 @@ def patch_menu():
 
     def main_menu(*args, **kwargs):
         markup = original(*args, **kwargs)
-        url = site_url()
-        if not url.startswith("https://"):
-            return markup
         rows = [list(r) for r in markup.inline_keyboard]
-        rows.append([InlineKeyboardButton(text="🌐 Наш сайт", url=url)])
+        url = site_url()
+        kb_url = os.getenv("KB_URL", "").strip()
+        if kb_url.startswith("https://"):
+            rows.append([InlineKeyboardButton(text="📚 База знаний", url=kb_url)])
+        if url.startswith("https://"):
+            rows.append([InlineKeyboardButton(text="🌐 Наш сайт", url=url)])
+        if len(rows) == len(markup.inline_keyboard):
+            return markup
         return InlineKeyboardMarkup(inline_keyboard=rows)
 
     kb.main_menu = main_menu

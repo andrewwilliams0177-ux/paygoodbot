@@ -383,9 +383,9 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,'SF Pro Di
     <div class="section">
       <div class="sec-hdr"><div class="sec-title">Тарифы</div></div>
       <div class="plans">
-        <div class="plan" onclick="quickBuy('basic')"><div class="plan-ic pli1">💳</div><div class="plan-info"><div class="plan-name">Basic Virtual Card</div><div class="plan-desc">Подписки, покупки онлайн</div></div><div class="plan-price">300 ₽</div></div>
-        <div class="plan" onclick="quickBuy('plus')"><div class="plan-ic pli2">⭐</div><div class="plan-info"><div class="plan-name">Plus Virtual Card</div><div class="plan-desc">Повышенные лимиты</div></div><div class="plan-price">600 ₽</div></div>
-        <div class="plan" onclick="quickBuy('pro')"><div class="plan-ic pli3">🚀</div><div class="plan-info"><div class="plan-name">Pro Virtual Card</div><div class="plan-desc">Максимум возможностей</div></div><div class="plan-price">1 200 ₽</div></div>
+        <div class="plan" onclick="quickBuy('basic')"><div class="plan-ic pli1">💳</div><div class="plan-info"><div class="plan-name">Basic Virtual Card</div><div class="plan-desc">Подписки и покупки · до $300/мес</div></div><div class="plan-price">300 ₽</div></div>
+        <div class="plan" onclick="quickBuy('plus')"><div class="plan-ic pli2">⭐</div><div class="plan-info"><div class="plan-name">Plus Virtual Card</div><div class="plan-desc">Почти всё · до $3 000/мес</div></div><div class="plan-price">600 ₽</div></div>
+        <div class="plan" onclick="quickBuy('pro')"><div class="plan-ic pli3">🚀</div><div class="plan-info"><div class="plan-name">Pro Virtual Card</div><div class="plan-desc">Любые покупки · до $30 000/мес</div></div><div class="plan-price">1 200 ₽</div></div>
       </div>
     </div>
   </div>
@@ -438,6 +438,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,'SF Pro Di
       <div class="mi" onclick="switchTab('cards')"><div class="mi-ic">💳</div><div class="mi-t">Мои карты</div><div class="mi-arr">›</div></div>
       <div class="mi" onclick="openHistory()"><div class="mi-ic">📋</div><div class="mi-t">История операций</div><div class="mi-arr">›</div></div>
       <div class="mi" onclick="openSecurity()"><div class="mi-ic">🔒</div><div class="mi-t">Безопасность</div><div class="mi-arr">›</div></div>
+      <div class="mi" id="mi-kb" style="display:none" onclick="openKb()"><div class="mi-ic">📚</div><div class="mi-t">База знаний</div><div class="mi-arr">›</div></div>
       <div class="mi" id="mi-site" style="display:none" onclick="openSite()"><div class="mi-ic">🌐</div><div class="mi-t">Наш сайт</div><div class="mi-arr">›</div></div>
       <div class="mi" onclick="openSupport()"><div class="mi-ic">💬</div><div class="mi-t">Поддержка</div><div class="mi-arr">›</div></div>
       <div class="mi" onclick="logout()"><div class="mi-ic">🚪</div><div class="mi-t" style="color:#ff6060">Выйти</div><div class="mi-arr">›</div></div>
@@ -459,9 +460,9 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,'SF Pro Di
     <div class="mod-title">Выпустить карту</div>
     <div class="mod-bal" id="mod-bal">Баланс: 0 ₽</div>
     <div class="plans">
-      <div class="plan" onclick="doBuy('basic')"><div class="plan-ic pli1">💳</div><div class="plan-info"><div class="plan-name">Basic</div><div class="plan-desc">Базовые возможности</div></div><div class="plan-price">300 ₽</div></div>
-      <div class="plan" onclick="doBuy('plus')"><div class="plan-ic pli2">⭐</div><div class="plan-info"><div class="plan-name">Plus</div><div class="plan-desc">Расширенный доступ</div></div><div class="plan-price">600 ₽</div></div>
-      <div class="plan" onclick="doBuy('pro')"><div class="plan-ic pli3">🚀</div><div class="plan-info"><div class="plan-name">Pro</div><div class="plan-desc">Максимум возможностей</div></div><div class="plan-price">1 200 ₽</div></div>
+      <div class="plan" onclick="doBuy('basic')"><div class="plan-ic pli1">💳</div><div class="plan-info"><div class="plan-name">Basic</div><div class="plan-desc">Подписки · до $300/мес</div></div><div class="plan-price">300 ₽</div></div>
+      <div class="plan" onclick="doBuy('plus')"><div class="plan-ic pli2">⭐</div><div class="plan-info"><div class="plan-name">Plus</div><div class="plan-desc">Почти всё · до $3 000/мес</div></div><div class="plan-price">600 ₽</div></div>
+      <div class="plan" onclick="doBuy('pro')"><div class="plan-ic pli3">🚀</div><div class="plan-info"><div class="plan-name">Pro</div><div class="plan-desc">Любые покупки · до $30 000/мес</div></div><div class="plan-price">1 200 ₽</div></div>
     </div>
   </div>
 </div>
@@ -480,7 +481,7 @@ const BOT_USERNAME='PayGoodBot_bot';
 let tgAuth=null;let tgTicket='';                    // данные входа через Telegram (только для сайта)
 const API_URL='https://paygoodbot-production.up.railway.app';
 const SUPPORT_URL='https://t.me/Andrew_Williams_Work';
-let siteUrl='';
+let siteUrl='',kbUrl='';
 let authMode='register',user={name:''},balance=0,cards=[],ops=[],pend=[],twofa=false,token='',needCode=false;
 const grads={
   basic:'linear-gradient(135deg,#003580,#0066cc,#0099ff)',
@@ -544,7 +545,7 @@ async function enter(){
   }
   note.textContent='';
   user.name=r.data.name||user.name;
-  siteUrl=r.data.site_url||siteUrl;showSiteBtn();
+  siteUrl=r.data.site_url||siteUrl;kbUrl=r.data.kb_url||kbUrl;showSiteBtn();
   goAuth(r.data.registered?'login':'register');
 }
 
@@ -588,7 +589,7 @@ async function refresh(){
   const r=await api('/api/state');
   if(!r.ok)return false;
   const d=r.data;
-  balance=d.balance;twofa=d.twofa;siteUrl=d.site_url||siteUrl;showSiteBtn();
+  balance=d.balance;twofa=d.twofa;siteUrl=d.site_url||siteUrl;kbUrl=d.kb_url||kbUrl;showSiteBtn();
   cards=d.cards.map(c=>({plan:c.plan,grad:grads[c.plan_id]||grads.basic,pan:String(c.pan).replace(/\s/g,'').replace(/(.{4})/g,'$1 ').trim(),exp:c.exp,cvv:c.cvv}));
   pend=d.orders||[];
   ops=d.ops;
@@ -687,7 +688,11 @@ function openSite(){
   if(!siteUrl)return;
   if(IN_TG&&tg.openLink)tg.openLink(siteUrl);else window.open(siteUrl,'_blank');
 }
-function showSiteBtn(){$('mi-site').style.display=(IN_TG&&siteUrl)?'flex':'none'}   // на самом сайте кнопка не нужна
+function openKb(){
+  if(!kbUrl)return;
+  if(IN_TG&&tg.openLink)tg.openLink(kbUrl);else window.open(kbUrl,'_blank');
+}
+function showSiteBtn(){$('mi-kb').style.display=kbUrl?'flex':'none';$('mi-site').style.display=(IN_TG&&siteUrl)?'flex':'none'}   // на самом сайте кнопка не нужна
 function openSupport(){
   if(IN_TG&&tg.openTelegramLink)tg.openTelegramLink(SUPPORT_URL);else window.open(SUPPORT_URL,'_blank');
 }
