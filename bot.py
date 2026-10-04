@@ -8,6 +8,8 @@ from aiohttp import web
 import config
 from api import create_app, init_api_db
 from db.database import init_db
+from sitebtn import patch_menu
+patch_menu()  # кнопка «Наш сайт» в меню (до импорта handlers.main)
 from handlers.main import router as main_router
 from manual import router as manual_router
 from orders import init_orders_db

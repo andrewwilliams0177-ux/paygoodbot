@@ -26,9 +26,15 @@ from db.database import get_conn
 import orders
 from services.card_provider import get_card_provider
 
-ALLOWED_ORIGIN = os.getenv("MINIAPP_ORIGIN", "https://andrewwilliams0177-ux.github.io")
+# Сайты, которым разрешено обращаться к серверу (через запятую). Добавь сюда адрес сайта на Vercel.
+ALLOWED_ORIGINS = [
+    o.strip().rstrip("/")
+    for o in (os.getenv("ALLOWED_ORIGINS") or os.getenv("MINIAPP_ORIGIN") or "https://andrewwilliams0177-ux.github.io").split(",")
+    if o.strip()
+]
 # 1 = тестовое пополнение без реальной оплаты. Поставь 0, когда подключишь настоящий платёж.
 MOCK_PAYMENTS = os.getenv("MOCK_PAYMENTS", "1") == "1"
+SITE_URL = os.getenv("SITE_URL", "").strip()   # адрес сайта на Vercel (для кнопки «Наш сайт»)
 
 INITDATA_MAX_AGE = 24 * 3600
 SESSION_TTL = 7 * 24 * 3600
@@ -93,6 +99,28 @@ def validate_init_data(init_data: str):
         if time.time() - int(parsed.get("auth_date", "0")) > INITDATA_MAX_AGE:
             return None
         return json.loads(parsed["user"])
+    except Exception:
+        return None
+
+
+def validate_login_widget(data):
+    """Проверка данных кнопки «Войти через Telegram» (для обычного сайта)."""
+    if not isinstance(data, dict):
+        return None
+    try:
+        d = {k: str(v) for k, v in data.items() if v is not None}
+        got_hash = d.pop("hash", None)
+        if not got_hash or "id" not in d:
+            return None
+        check = "\n".join(f"{k}={v}" for k, v in sorted(d.items()))
+        secret = hashlib.sha256(config.BOT_TOKEN.encode()).digest()
+        calc = hmac.new(secret, check.encode(), hashlib.sha256).hexdigest()
+        if not hmac.compare_digest(calc, got_hash):
+            return None
+        if time.time() - int(d.get("auth_date", "0")) > INITDATA_MAX_AGE:
+            return None
+        return {"id": int(d["id"]), "first_name": d.get("first_name", ""),
+                "last_name": d.get("last_name", ""), "username": d.get("username")}
     except Exception:
         return None
 
@@ -165,24 +193,36 @@ async def _auth(request):
         body = await request.json()
     except Exception:
         return None, None, _err("Неверный запрос", 400)
-    user = validate_init_data(body.get("initData", ""))
+    if isinstance(body.get("tgAuth"), dict):      # обычный сайт: вход через Telegram
+        user = validate_login_widget(body["tgAuth"])
+    else:                                          # мини-приложение внутри Telegram
+        user = validate_init_data(body.get("initData", ""))
     if not user:
-        return None, None, _err("Откройте приложение через Telegram", 401)
+        return None, None, _err("Войдите через Telegram", 401)
     return user, body, None
 
 
 async def _authed(request):
-    """То же, что _auth, но требует ещё и токен сессии (т.е. пройденный вход по паролю)."""
-    user, body, err = await _auth(request)
-    if err:
-        return None, None, err
+    """Для действий внутри аккаунта: нужен токен сессии (т.е. пройденный вход по паролю)."""
+    try:
+        body = await request.json()
+    except Exception:
+        return None, None, _err("Неверный запрос", 400)
     token = str(body.get("token", ""))
     with get_conn() as conn:
         row = conn.execute(
             "SELECT tg_id, expires FROM web_sessions WHERE token_hash = ?", (_hash_token(token),)
-        ).fetchone()
-    if not row or row["tg_id"] != user["id"] or row["expires"] < time.time():
+        ).fetchone() if token else None
+        acc = _get_account(conn, row["tg_id"]) if row else None
+        urow = conn.execute("SELECT username FROM users WHERE user_id = ?", (row["tg_id"],)).fetchone() if row else None
+    if not row or not acc or row["expires"] < time.time():
         return None, None, _err("Сессия истекла, войдите заново", 401, relogin=True)
+    # если вместе с токеном пришла подпись Telegram, она должна принадлежать тому же человеку
+    tg_user = validate_init_data(body.get("initData", "")) if body.get("initData") else None
+    if tg_user and tg_user["id"] != row["tg_id"]:
+        return None, None, _err("Сессия истекла, войдите заново", 401, relogin=True)
+    user = {"id": row["tg_id"], "first_name": acc["name"], "last_name": "",
+            "username": urow["username"] if urow else None}
     return user, body, None
 
 
@@ -218,7 +258,7 @@ async def status(request):
         return err
     with get_conn() as conn:
         row = _get_account(conn, user["id"])
-    return web.json_response({"registered": bool(row), "name": _display_name(user)})
+    return web.json_response({"registered": bool(row), "name": _display_name(user), "site_url": SITE_URL})
 
 
 async def register(request):
@@ -321,6 +361,7 @@ async def state(request):
         "orders": orders.pending_orders(user["id"]),
         "twofa": bool(acc and acc["totp_secret"]),
         "mock_payments": MOCK_PAYMENTS,
+        "site_url": SITE_URL,
     })
 
 
@@ -479,7 +520,9 @@ async def cors(request, handler):
         resp = web.Response(status=204)
     else:
         resp = await handler(request)
-    resp.headers["Access-Control-Allow-Origin"] = ALLOWED_ORIGIN
+    origin = request.headers.get("Origin", "").rstrip("/")
+    resp.headers["Access-Control-Allow-Origin"] = origin if origin in ALLOWED_ORIGINS else ALLOWED_ORIGINS[0]
+    resp.headers["Vary"] = "Origin"
     resp.headers["Access-Control-Allow-Methods"] = "POST, OPTIONS"
     resp.headers["Access-Control-Allow-Headers"] = "Content-Type"
     return resp
