@@ -24,6 +24,7 @@ import config
 from db import database as db
 from db.database import get_conn
 import orders
+import weblogin
 from services.card_provider import get_card_provider
 
 # Сайты, которым разрешено обращаться к серверу (через запятую). Добавь сюда адрес сайта на Vercel.
@@ -34,6 +35,7 @@ ALLOWED_ORIGINS = [
 ]
 # 1 = тестовое пополнение без реальной оплаты. Поставь 0, когда подключишь настоящий платёж.
 MOCK_PAYMENTS = os.getenv("MOCK_PAYMENTS", "1") == "1"
+BOT_USERNAME = os.getenv("BOT_USERNAME", "PayGoodBot_bot").strip().lstrip("@")
 SITE_URL = os.getenv("SITE_URL", "").strip()   # адрес сайта на Vercel (для кнопки «Наш сайт»)
 
 INITDATA_MAX_AGE = 24 * 3600
@@ -48,6 +50,7 @@ METHODS = {"sbp": "СБП", "card": "Карта РФ", "crypto": "Криптов
 # ───────────────────────── база ─────────────────────────
 
 def init_api_db():
+    weblogin.init_weblogin_db()
     with get_conn() as conn:
         conn.execute("""
             CREATE TABLE IF NOT EXISTS web_accounts (
@@ -193,7 +196,9 @@ async def _auth(request):
         body = await request.json()
     except Exception:
         return None, None, _err("Неверный запрос", 400)
-    if isinstance(body.get("tgAuth"), dict):      # обычный сайт: вход через Telegram
+    if body.get("tgTicket"):                       # сайт: вход через приложение Telegram
+        user = weblogin.user_by_ticket(body["tgTicket"])
+    elif isinstance(body.get("tgAuth"), dict):     # сайт: виджет Telegram (запасной способ)
         user = validate_login_widget(body["tgAuth"])
     else:                                          # мини-приложение внутри Telegram
         user = validate_init_data(body.get("initData", ""))
@@ -316,6 +321,25 @@ async def login(request):
         conn.commit()
     db.get_or_create_user(user["id"], user.get("username"))
     return web.json_response({"ok": True, "name": row["name"], "token": token})
+
+
+async def tglogin_start(request):
+    token, secret = weblogin.start()
+    return web.json_response({"token": token, "secret": secret,
+                              "url": f"https://t.me/{BOT_USERNAME}?start=wl_{token}"})
+
+
+async def tglogin_poll(request):
+    try:
+        body = await request.json()
+    except Exception:
+        return _err("Неверный запрос", 400)
+    st, ticket = weblogin.poll(str(body.get("token", "")), str(body.get("secret", "")))
+    if st == "ok":
+        return web.json_response({"ok": True, "ticket": ticket})
+    if st == "pending":
+        return web.json_response({"pending": True})
+    return _err("Ссылка устарела", 410)
 
 
 async def logout(request):
@@ -537,6 +561,8 @@ ROUTES = {
     "/api/register": register,
     "/api/login": login,
     "/api/logout": logout,
+    "/api/tglogin/start": tglogin_start,
+    "/api/tglogin/poll": tglogin_poll,
     "/api/state": state,
     "/api/topup": topup,
     "/api/buy": buy,

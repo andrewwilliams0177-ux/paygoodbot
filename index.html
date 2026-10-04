@@ -334,7 +334,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,'SF Pro Di
     </div>
     <div class="splash-btns">
       <button class="btn-tech primary" id="enter-btn" onclick="enter()">Продолжить</button>
-      <div id="tg-widget" style="display:none;justify-content:center;min-height:44px"></div>
+      <div id="tg-widget" style="display:none;justify-content:center;min-height:44px"><a id="wl-link" class="btn-tech primary" href="#" target="_blank" rel="noopener" style="text-decoration:none;text-align:center;display:block;opacity:.6;width:100%">✈️ Войти через Telegram</a></div>
       <div class="auth-sw" id="enter-note" style="min-height:18px"></div>
     </div>
   </div>
@@ -477,7 +477,7 @@ const tg=window.Telegram?.WebApp;
 if(tg){tg.ready();tg.expand()}
 const IN_TG=!!(tg&&tg.initData);   // true — открыто внутри Telegram, false — обычный сайт
 const BOT_USERNAME='PayGoodBot_bot';
-let tgAuth=null;                    // данные входа через Telegram (только для сайта)
+let tgAuth=null;let tgTicket='';                    // данные входа через Telegram (только для сайта)
 const API_URL='https://paygoodbot-production.up.railway.app';
 const SUPPORT_URL='https://t.me/Andrew_Williams_Work';
 let siteUrl='';
@@ -496,7 +496,7 @@ const fmt=n=>Number(n).toLocaleString('ru');
 
 async function api(path,extra){
   try{
-    const r=await fetch(API_URL+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({initData:tg?.initData||'',token:token},IN_TG?{}:{tgAuth:tgAuth},extra||{}))});
+    const r=await fetch(API_URL+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({initData:tg?.initData||'',token:token},IN_TG?{}:{tgTicket:tgTicket},extra||{}))});
     const d=await r.json().catch(()=>({}));
     if(r.status===401&&d.relogin){sessionLost();}
     return {ok:r.ok,status:r.status,data:d};
@@ -504,29 +504,42 @@ async function api(path,extra){
 }
 function sessionLost(){token='';closeSub();enter();showToast('🔒 Войдите заново')}
 
-function showWidget(msg){
-  const btn=$('enter-btn'),box=$('tg-widget');
-  btn.style.display='none';box.style.display='flex';
-  $('enter-note').textContent=msg||'Войдите через Telegram, чтобы продолжить';
-  if(box.childElementCount)return;
-  const s=document.createElement('script');
-  s.async=true;s.src='https://telegram.org/js/telegram-widget.js?22';
-  s.setAttribute('data-telegram-login',BOT_USERNAME);
-  s.setAttribute('data-size','large');s.setAttribute('data-radius','12');
-  s.setAttribute('data-request-access','write');
-  s.setAttribute('data-onauth','onTgAuth(user)');
-  box.appendChild(s);
+let wl=null,wlTimer=null,wlBusy=false;
+function stopWl(){if(wlTimer){clearInterval(wlTimer);wlTimer=null}}
+async function wlStart(){
+  stopWl();wl=null;
+  try{
+    const r=await fetch(API_URL+'/api/tglogin/start',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
+    const d=await r.json();if(!r.ok||!d.token)throw 0;wl=d;
+    const a=$('wl-link');a.href=d.url;a.style.opacity='1';
+    wlTimer=setInterval(wlPoll,2000);
+  }catch(e){$('enter-note').textContent='Нет связи с сервером. Обновите страницу'}
 }
-window.onTgAuth=function(u){tgAuth=u;enter()};
+async function wlPoll(){
+  if(!wl||wlBusy)return;wlBusy=true;
+  try{
+    const r=await fetch(API_URL+'/api/tglogin/poll',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:wl.token,secret:wl.secret})});
+    const d=await r.json().catch(()=>({}));
+    if(r.status===410){wlBusy=false;wlStart();return}
+    if(d.ok&&d.ticket){stopWl();tgTicket=d.ticket;wl=null;wlBusy=false;enter();return}
+  }catch(e){}
+  wlBusy=false;
+}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&wl)wlPoll()});
+function showWidget(msg){
+  $('enter-btn').style.display='none';$('tg-widget').style.display='flex';
+  $('enter-note').textContent=msg||'Нажмите кнопку — откроется Telegram. Подтвердите вход в боте и вернитесь сюда';
+  if(!wl)wlStart();
+}
 
 async function enter(){
   const note=$('enter-note');
   go('s-splash');
-  if(!IN_TG&&!tgAuth){showWidget();return}
+  if(!IN_TG&&!tgTicket){showWidget();return}
   note.textContent='Проверяем…';
   const r=await api('/api/status');
   if(!r.ok){
-    if(!IN_TG&&r.status===401){tgAuth=null;showWidget(r.data.error);return}
+    if(!IN_TG&&r.status===401){tgTicket='';showWidget(r.data.error);return}
     note.textContent=r.data.error||'Ошибка сервера';return;
   }
   note.textContent='';

@@ -1,10 +1,11 @@
 """Админ-часть: кнопки «Выдать/Отклонить», приём данных карты, команда /id."""
 from aiogram import Router, F
 from aiogram.filters import Command
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 
 import config
 import orders
+import weblogin
 from db import database as db
 from handlers.keyboards import back_to_main
 
@@ -13,6 +14,29 @@ router = Router()
 
 def _name(u):
     return f"@{u.username}" if u.username else (u.full_name or str(u.id))
+
+
+# ── вход на сайт через Telegram: /start wl_<токен> → «Подтвердить» ──
+@router.message(F.text.startswith("/start wl_"))
+async def site_login_start(message: Message):
+    token = message.text.split("wl_", 1)[1].strip()
+    if not weblogin.exists(token):
+        await message.answer("Ссылка входа устарела. Вернитесь на сайт и нажмите «Войти через Telegram» ещё раз.")
+        return
+    kb = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="✅ Подтвердить вход", callback_data=f"wl_ok:{token}")]])
+    await message.answer("Вход на сайт PayGoodBot.\n\nЭто вы заходите? Если вы ничего не делали на сайте, просто проигнорируйте это сообщение.",
+                         reply_markup=kb)
+
+
+@router.callback_query(F.data.startswith("wl_ok:"))
+async def site_login_ok(call: CallbackQuery):
+    token = call.data.split(":", 1)[1]
+    u = call.from_user
+    if weblogin.confirm(token, u.id, u.full_name, u.username):
+        await call.message.edit_text("✅ Вход подтверждён. Вернитесь на сайт.")
+    else:
+        await call.message.edit_text("Ссылка входа устарела или уже использована. Начните вход на сайте заново.")
+    await call.answer()
 
 
 @router.message(Command("id"))
